@@ -13,5 +13,5 @@ The model will house the files that describe our neural network model.
 ## Requirements
 
 ## Tools
-**_Python_** will be the main programming language we will use. We will use it for configuring our neural network and, through the **_Django_** framework, be our main backend language.
+**_Python_** will be the main programming language we will use. We will use it for configuring our neural network and, through the **_Flask_** framework, be our main backend language.
 
