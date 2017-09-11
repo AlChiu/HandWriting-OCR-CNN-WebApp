@@ -6,6 +6,7 @@ app=Flask(__name__)
 def main():
     return render_template('index.html')
 
+@app.route('/upload', methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST':
         f = request.files['file']
