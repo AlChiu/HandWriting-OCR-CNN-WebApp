@@ -22,8 +22,7 @@ from PIL import Image
 tf.logging.set_verbosity(tf.logging.INFO)
 
 # Hyperparameters
-LEARNING_RATE = 0.001
-BATCH_SIZE = 5000
+LEARNING_RATE = 0.01
 NUM_INPUT = 3000 # Our data input (img size: 100 * 30)
 NUM_CLASSES = 90000 # 90000 classes in our dataset
 NUM_UNITS = 4096
@@ -44,7 +43,7 @@ def load_data(image_directory):
 	images = []
 	labels = []
 	regexp = '[a-zA-Z]+'
-	folders = 200
+	folders = 10
 	count = 0
 
 	for root, dirnames, filenames in os.walk(image_directory):
@@ -60,12 +59,13 @@ def load_data(image_directory):
 		if (count > folders):
 			break
 
-	images = np.array(images).astype(np.float32)
+	images = np.array(images)
 	words = np.unique(labels)
 	words = {k: v for v, k in enumerate(words)}
 	labels = [words[l] for l in labels]
 	global NUM_CLASSES
 	NUM_CLASSES = len(words)
+	print(NUM_CLASSES)
 	return images, labels, words
 
 def convert_to_pixel_array(image_path):
@@ -73,13 +73,17 @@ def convert_to_pixel_array(image_path):
 
 	im = Image.open(image_path, 'r').resize((WIDTH, HEIGHT), Image.BICUBIC).convert('L')
 	pixels = list(im.getdata())
+	#print('pixels: ', pixels)
 
-	# Zero center pixel data
+	# Normalize and zero center pixel data
 	std_dev = np.std(pixels)
 	img_mean = np.mean(pixels)
 
 	pixels = [(pixels[offset:offset+WIDTH]-img_mean)/std_dev for offset in range(0, WIDTH*HEIGHT, WIDTH)]
-
+	#print('stddev: ',std_dev)
+	#print('img_mean: ',img_mean)
+	#print('normalized: ',pixels)
+	#exit()
 	
 	return pixels
 
@@ -87,7 +91,6 @@ def convert_to_pixel_array(image_path):
 def conv_net(features, labels, mode, reuse, is_training):
 	with tf.variable_scope('ConvNet', reuse=reuse):
 		# INPUT LAYER
-		#input_layer = tf.reshape(features["images"], [-1, 32, 100, 1])
 		input_layer = tf.reshape(features["images"], [-1, HEIGHT, WIDTH, 1])
 
 		# CONVOLUTION LAYER #1
@@ -159,7 +162,6 @@ def conv_net(features, labels, mode, reuse, is_training):
 		dropout1 = tf.layers.dropout(inputs=fc1,
 					     rate=DROPOUT,
 					     training=is_training)
-					     #training=mode == tf.estimator.ModeKeys.TRAIN)
 
 		# DENSE LAYER #2
 		fc2 = tf.layers.dense(inputs=dropout1,
@@ -167,7 +169,7 @@ def conv_net(features, labels, mode, reuse, is_training):
 				      activation=tf.nn.relu)
 		dropout2 = tf.layers.dropout(inputs=fc2,
 					     rate=DROPOUT,
-					     training=mode == tf.estimator.ModeKeys.TRAIN)
+					     training=is_training)
 
 		# LOGITS/CLASSIFIER LAYER
 		output = tf.layers.dense(inputs=dropout2,

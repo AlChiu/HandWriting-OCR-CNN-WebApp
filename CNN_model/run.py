@@ -12,11 +12,11 @@ import random
 if __name__=='__main__':
 	global_start_time = time.time()
 	
-	batch_size = 128
-	num_steps = 5000
 	image_directory = '../../../Dataset/synth-words/mnt/ramdisk/max/90kDICT32px/'
 	training_images_path = ''
 	test_image_path = '68/1/235_minion_48634.jpg'
+	batch_size = 2000
+	num_steps = 2000
 
 	# Load data
 	images, labels, words = cnn_model.load_data(image_directory + training_images_path)
