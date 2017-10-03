@@ -13,9 +13,9 @@ if __name__=='__main__':
 	global_start_time = time.time()
 	
 	batch_size = 128
-	num_steps = 2000
+	num_steps = 5000
 	image_directory = '../../../Dataset/synth-words/mnt/ramdisk/max/90kDICT32px/'
-	training_images_path = '1'
+	training_images_path = ''
 	test_image_path = '68/1/235_minion_48634.jpg'
 
 	# Load data
@@ -27,11 +27,16 @@ if __name__=='__main__':
 	images, labels = zip(*data)
 
 	# Split into train and test sets
-	split_idx = int(len(images)*0.8)
+	split_idx = int(len(images)*0.7)
 	train_images = np.array(images[0:split_idx])
 	train_labels = np.array(labels[0:split_idx])
-	test_images = np.array(images[split_idx+1:])
-	test_labels = np.array(labels[split_idx+1:])
+	test_images = list(images[split_idx+1:])
+	test_labels = list(labels[split_idx+1:])
+	test_data = zip(test_images, test_labels)
+	test_data = [(image, label) for (image, label) in test_data if label in train_labels]
+	test_images, test_labels = zip(*test_data)
+	test_images = np.array(test_images)
+	test_labels = np.array(test_labels)
 
 	# Build model
 	model = tf.estimator.Estimator(cnn_model.model_fn)
