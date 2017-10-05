@@ -18,6 +18,8 @@ import os
 import fnmatch
 import re
 from PIL import Image
+import cPickle as pickle
+from sets import Set
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -25,7 +27,7 @@ tf.logging.set_verbosity(tf.logging.INFO)
 LEARNING_RATE = 0.01
 NUM_INPUT = 3000 # Our data input (img size: 100 * 30)
 NUM_CLASSES = 90000 # 90000 classes in our dataset
-NUM_UNITS = 4096
+NUM_UNITS = 3000
 DROPOUT = 0.5 # Fifty percent chance to keep neuron activated
 STRIDES = 2
 HEIGHT = 32
@@ -39,30 +41,46 @@ CONV3_FILTERS = 256
 CONV4_FILTERS = 512
 CONV5_FILTERS = 512
 
-def load_data(image_directory):
+def load_data(image_directory, num_folders, num_words):
 	images = []
 	labels = []
 	regexp = '[a-zA-Z]+'
-	folders = 10
 	count = 0
+	words = Set()
 
-	for root, dirnames, filenames in os.walk(image_directory):
-		for filename in fnmatch.filter(filenames, '*.jpg'):
-			fname = os.path.splitext(filename)[0]
-			m = re.search(regexp, fname)
-			if(m):
-				labels.append(m.group(0).lower())
-				image_path = os.path.join(root, filename)
-				img = convert_to_pixel_array(image_path)
-				images.append(img)
-		count = count + 1
-		if (count > folders):
-			break
+	try:
+		# Attempts to load data from pickle
+		data = pickle.load(open("dataset.p", "rb"))
+		images, labels, words = zip(*data)
+		print('data loaded from dataset.p')
+	except:
+		for root, dirnames, filenames in os.walk(image_directory):
+			for filename in fnmatch.filter(filenames, '*.jpg'):
+				fname = os.path.splitext(filename)[0]
+				m = re.search(regexp, fname)
+				if(m):
+					word = m.group(0).lower()
+					if(len(words) < num_words or word in words):
+						image_path = os.path.join(root, filename)
+						try:
+							img = convert_to_pixel_array(image_path)
+							labels.append(word)
+							images.append(img)
+							words.add(word)
+						except:
+							print('image not valid: ', filename)
+			count = count + 1
+			if (count > num_folders):
+				break
+		images = np.array(images).astype(np.float32)
+		words = list(words)
+		words = {k: v for v, k in enumerate(words)}
+		labels = [words[l] for l in labels]
+		# Pickle data so this process doesn't need to be repeated
+		data = zip(images, labels, words)
+		pickle.dump(data, open("dataset.p", "wb"))
+		print('data saved to dataset.p')
 
-	images = np.array(images)
-	words = np.unique(labels)
-	words = {k: v for v, k in enumerate(words)}
-	labels = [words[l] for l in labels]
 	global NUM_CLASSES
 	NUM_CLASSES = len(words)
 	print(NUM_CLASSES)
@@ -73,17 +91,12 @@ def convert_to_pixel_array(image_path):
 
 	im = Image.open(image_path, 'r').resize((WIDTH, HEIGHT), Image.BICUBIC).convert('L')
 	pixels = list(im.getdata())
-	#print('pixels: ', pixels)
 
 	# Normalize and zero center pixel data
 	std_dev = np.std(pixels)
 	img_mean = np.mean(pixels)
 
 	pixels = [(pixels[offset:offset+WIDTH]-img_mean)/std_dev for offset in range(0, WIDTH*HEIGHT, WIDTH)]
-	#print('stddev: ',std_dev)
-	#print('img_mean: ',img_mean)
-	#print('normalized: ',pixels)
-	#exit()
 	
 	return pixels
 
@@ -136,12 +149,12 @@ def conv_net(features, labels, mode, reuse, is_training):
 					 activation=tf.nn.relu)
 
 		# POOLING LAYER #4
-		pool4 = tf.layers.max_pooling2d(inputs=conv4,
-						pool_size=POOL_SIZE,
-						strides=STRIDES)
+		#pool4 = tf.layers.max_pooling2d(inputs=conv4,
+						#pool_size=POOL_SIZE,
+						#strides=STRIDES)
 
 		# CONVOLUTION LAYER #5
-		conv5 = tf.layers.conv2d(inputs=pool4,
+		conv5 = tf.layers.conv2d(inputs=conv4, #pool4,
 					filters=CONV5_FILTERS,
 					kernel_size=KERNEL_SIZE_2,
 					padding="same",

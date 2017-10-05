@@ -15,11 +15,14 @@ if __name__=='__main__':
 	image_directory = '../../../Dataset/synth-words/mnt/ramdisk/max/90kDICT32px/'
 	training_images_path = ''
 	test_image_path = '68/1/235_minion_48634.jpg'
-	batch_size = 2000
-	num_steps = 2000
+	batch_size = 500
+	num_folders = 3000
+	num_words = 100
+	num_steps = 5000
 
 	# Load data
-	images, labels, words = cnn_model.load_data(image_directory + training_images_path)
+	images, labels, words = cnn_model.load_data(image_directory + training_images_path, num_folders, num_words)
+	print('{} images loaded'.format(len(images)))
 
 	# Shuffle data
 	data = list(zip(images, labels))
@@ -33,7 +36,9 @@ if __name__=='__main__':
 	test_images = list(images[split_idx+1:])
 	test_labels = list(labels[split_idx+1:])
 	test_data = zip(test_images, test_labels)
+	print('length before filtering: ', len(test_data))
 	test_data = [(image, label) for (image, label) in test_data if label in train_labels]
+	print('length after filtering: ', len(test_data))
 	test_images, test_labels = zip(*test_data)
 	test_images = np.array(test_images)
 	test_labels = np.array(test_labels)
