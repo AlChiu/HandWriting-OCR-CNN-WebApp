@@ -2,7 +2,6 @@ import os
 import time
 import cnn_model_keras
 import dataload
-import configparser
 import keras
 import random
 import numpy as np
@@ -10,20 +9,13 @@ from keras import backend as K
 
 if __name__ == '__main__':
 	BATCH_SIZE = 100
-	EPOCHS = 1000
+	EPOCHS = 300
 	NUM_WORDS = 1000
 	HEIGHT = 32
 	WIDTH = 100
-	config = configparser.ConfigParser()
-	config.read('settings.ini')
-	# Path to image dataset
-	image_directory = config['paths']['IMAGE_DIRECTORY']
-
-	# Path to text file containing 1000 words to learn, one word per line
-	words = set(open('1-1000.txt').read().split())
 
 	# Load data
-	word_data = dataload.load_data(image_directory, words)
+	word_data = dataload.load_data()
 
 	# Limit number of words to look at
 	word_data = { word: data for word, data in word_data.items() if data['id'] < NUM_WORDS}

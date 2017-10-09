@@ -4,14 +4,25 @@ import fnmatch
 import re
 from PIL import Image
 import pickle
+import configparser
 
 HEIGHT = 32
 WIDTH = 100
 
-def load_data(image_directory, words):
+config = configparser.ConfigParser()
+config.read('settings.ini')
+# Path to image dataset
+image_directory = config['paths']['IMAGE_DIRECTORY']
+
+# Name of converted dataset file
+datafile = 'dataset.p'
+
+# Path to text file containing 1000 words to learn, one word per line
+words = set(open('1-1000.txt').read().split())
+
+def load_data():
 	regexp = '[a-zA-Z]+'
 	word_data = {}
-	datafile = 'dataset.p'
 
 	try:
 		# Attempts to load data from pickle
@@ -61,3 +72,21 @@ def convert_to_pixel_array(image_path):
 	pixels = np.array(pixels).astype(np.float32)
 	
 	return pixels
+
+def classify_image(model, image_path):
+	image_pixels = convert_to_pixel_array(image_path)
+	image_pixels = np.array(image_pixels)
+	inp = np.array([image_pixels])
+	inp = inp.reshape(inp.shape[0], 32, 100, 1)
+
+	word_data = pickle.load(open(dataset, "rb"))
+
+	outp = model.predict(inp)[0]
+	outp = np.array(outp)
+
+	top5_idx = outp.argsort()[-5:]
+
+	top5_words = [(k, outp[v['id']]) for k, v in word_data.items() if v['id'] in top5_idx]
+	top5_words = sorted(top5_words, key=lambda x: x[1], reverse=True)
+
+	return top5_words
