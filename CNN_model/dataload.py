@@ -5,6 +5,7 @@ import re
 from PIL import Image
 import pickle
 import configparser
+import keras
 
 HEIGHT = 32
 WIDTH = 100
@@ -73,20 +74,31 @@ def convert_to_pixel_array(image_path):
 	
 	return pixels
 
-def classify_image(model, image_path):
-	image_pixels = convert_to_pixel_array(image_path)
-	image_pixels = np.array(image_pixels)
-	inp = np.array([image_pixels])
-	inp = inp.reshape(inp.shape[0], 32, 100, 1)
+class WordClassifier:
+	def __init__(self, modelPath=None, model=None):
+		if (model is not None):
+			self.model = model
+		elif (modelPath is not None):
+			self.model = keras.models.load_model(modelPath)
+		else:
+			raise ValueError('either model or modelPath must be given')
+		self.word_data = pickle.load(open(datafile, 'rb'), encoding='latin1')
 
-	word_data = pickle.load(open(dataset, "rb"))
+	def classify_image(self, image_path):
+		try:
+			image_pixels = convert_to_pixel_array(image_path)
+			image_pixels = np.array(image_pixels)
+			inp = np.array([image_pixels])
+			inp = inp.reshape(inp.shape[0], 32, 100, 1)
 
-	outp = model.predict(inp)[0]
-	outp = np.array(outp)
+			outp = self.model.predict(inp)[0]
+			outp = np.array(outp)
 
-	top5_idx = outp.argsort()[-5:]
+			top5_idx = outp.argsort()[-5:]
 
-	top5_words = [(k, outp[v['id']]) for k, v in word_data.items() if v['id'] in top5_idx]
-	top5_words = sorted(top5_words, key=lambda x: x[1], reverse=True)
+			top5_words = [(k, outp[v['id']]) for k, v in self.word_data.items() if v['id'] in top5_idx]
+			top5_words = sorted(top5_words, key=lambda x: x[1], reverse=True)
 
-	return top5_words
+			return top5_words
+		except FileNotFoundError:
+			print('Image not found at path {}'.format(image_path))
