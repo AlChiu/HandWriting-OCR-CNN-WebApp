@@ -17,6 +17,7 @@ image_directory = config['paths']['IMAGE_DIRECTORY']
 
 # Name of converted dataset file
 datafile = 'dataset.p'
+word_id_file = 'word_ids.p'
 
 # Path to text file containing 1000 words to learn, one word per line
 words = set(open('1-1000.txt').read().split())
@@ -54,6 +55,10 @@ def load_data():
 		# Pickle data so this process doesn't need to be repeated
 		pickle.dump(word_data, open(datafile, "wb"))
 		print('data saved to {}'.format(datafile))
+		word_ids = word_data.copy()
+		for word, data in words_ids:
+			data.pop('points')
+		pickle.dump(word_ids, open(word_id_file, 'wb'))
 
 	global NUM_CLASSES
 	NUM_CLASSES = len(word_data)
@@ -82,7 +87,7 @@ class WordClassifier:
 			self.model = keras.models.load_model(modelPath)
 		else:
 			raise ValueError('either model or modelPath must be given')
-		self.word_data = pickle.load(open(datafile, 'rb'), encoding='latin1')
+		self.word_ids = pickle.load(open(word_id_file, 'rb'), encoding='latin1')
 
 	def classify_image(self, image_path):
 		try:
@@ -96,7 +101,7 @@ class WordClassifier:
 
 			top5_idx = outp.argsort()[-5:]
 
-			top5_words = [(k, outp[v['id']]) for k, v in self.word_data.items() if v['id'] in top5_idx]
+			top5_words = [(k, outp[v['id']]) for k, v in self.word_ids.items() if v['id'] in top5_idx]
 			top5_words = sorted(top5_words, key=lambda x: x[1], reverse=True)
 
 			return top5_words
