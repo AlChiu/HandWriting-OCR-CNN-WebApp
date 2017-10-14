@@ -18,7 +18,7 @@ import os
 import fnmatch
 import re
 from PIL import Image
-import cPickle as pickle
+import _pickle as pickle
 from sets import Set
 
 tf.logging.set_verbosity(tf.logging.INFO)
