@@ -1,4 +1,5 @@
 import glob
+import os
 import re
 from dataload import WordClassifier
 
@@ -15,5 +16,6 @@ def classify():
 
   for image in sorted(glob.iglob('word_*.png'), key=numericalSort):
     words.append(classifier.classify_image(image))
+    os.remove(image)
 
   return words

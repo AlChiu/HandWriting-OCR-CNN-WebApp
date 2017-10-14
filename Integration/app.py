@@ -1,8 +1,9 @@
 from flask import Flask, render_template, request
 from werkzeug import secure_filename
-import cv2
+import os
 import detector
 import classifier
+
 app=Flask(__name__)
 
 @app.route("/")
@@ -17,6 +18,8 @@ def upload():
         
         detector.detector(f.filename)
         words = classifier.classify()
+
+        os.remove(f.filename)
         
         return render_template("show_entries.html", data=words)
         
