@@ -18,7 +18,7 @@ def upload():
         detector.detector(f.filename)
         words = classifier.classify()
         
-        return words
+        return render_template("show_entries.html", data=words)
         
 if __name__ == "__main__":
     app.run(debug = True)
