@@ -52,6 +52,7 @@ class Dataloader:
         except:
             nist_data = walk_nist()
             pickle.dump(nist_data, open(nist_fname, 'wb'))
+            print('nist saved to ', nist_fname)
         return nist_data
 
     def load_char74k(self):
@@ -64,6 +65,7 @@ class Dataloader:
             char74k_data['hnd'] = walk_char74k('hnd')
             char74k_data['img'] = walk_char74k('img')
             pickle.dump(char74k_data, open(char74k_pname, 'wb'))
+            print('char74k saved to ', char74k_pname)
         return char74k_data
 
     def walk_nist(self):
@@ -74,16 +76,17 @@ class Dataloader:
             data[char] = {}
             data[char]['id'] = ord(char)
             data[char]['points'] = []
-            for filename in filenames if filename.endswith('.png'):
-                try:
-                    image_path = os.path.join(root, filename)
-                    point = {}
-                    point['filename'] = filename
-                    point['image_path'] = image_path
-                    point['pixel_array'] = convert_to_pixel_array(image_path)
-                    data[char]['points'].append(point)
-                except:
-                    print('image not valid: {}'.format(filename))
+            for filename in filenames:
+                if filename.endswith('.png'):
+                    try:
+                        image_path = os.path.join(root, filename)
+                        point = {}
+                        point['filename'] = filename
+                        point['image_path'] = image_path
+                        point['pixel_array'] = convert_to_pixel_array(image_path)
+                        data[char]['points'].append(point)
+                    except:
+                        print('image not valid: {}'.format(filename))
         return data
 
     def walk_char74k(self, char_type):
@@ -96,7 +99,7 @@ class Dataloader:
             cpath = self.chars_hnd_path
         else:
             cpath = self.chars_img_path
-        for root, dirnames, filenames in os.walk(cpath)
+        for root, dirnames, filenames in os.walk(cpath):
                 foldername = root.split(os.path.sep)[-1]
                 chartype_search = re.search(fname_reg, foldername)
                 if (chartype_search and len(chartype_search) == 2):
@@ -105,14 +108,17 @@ class Dataloader:
                     data[char] = {}
                     data[char]['id'] = ord(char)
                     data[char]['points'] = []
-                    for filename in filenames if filename.endswith('.png'):
-                        try:
-                            image_path = os.path.join(root, filename)
-                            point = {}
-                            point['filename'] = filename
-                            point['image_path'] = image_path
-                            point['pixel_array'] = convert_to_pixel_array(image_path)
-                            data[char]['points'].append(point)
+                    for filename in filenames:
+                        if filename.endswith('.png'):
+                            try:
+                                image_path = os.path.join(root, filename)
+                                point = {}
+                                point['filename'] = filename
+                                point['image_path'] = image_path
+                                point['pixel_array'] = convert_to_pixel_array(image_path)
+                                data[char]['points'].append(point)
+                            except:
+                                print('image not valid: {}'.format(filename))
 
         return data
 
