@@ -39,7 +39,7 @@ class Dataloader:
     """
     def __init__(self):
         self.nist_path = dataset_dir + 'nist/'
-        chars74k = dataset_dir + 'chars74k/English/'
+        self.chars74k = dataset_dir + 'chars74k/English/'
         self.chars_fnt_path = self.chars74k + 'Fnt/Img/'
         self.chars_hnd_path = self.chars74k + 'Hnd/Img/'
         self.chars_img_path = self.chars74k + 'Img/Img/'
