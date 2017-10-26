@@ -1,6 +1,7 @@
 import os
 import time
 import load_chars
+import cnn_model_chars
 import keras
 import random
 import numpy as np
@@ -8,6 +9,8 @@ import numpy as np
 if __name__ == '__main__':
     HEIGHT = 32
     WIDTH = 32
+    BATCH_SIZE = 1000
+    EPOCHS = 100
 
     # Load data
     loader = load_chars.Dataloader(HEIGHT, WIDTH)
@@ -45,3 +48,21 @@ if __name__ == '__main__':
     # Reshape data to fit image channel
     train_images = train_images.reshape(train_images.shape[0], HEIGHT, WIDTH, 1)
     test_images = test_images.reshape(test_images.shape[0], HEIGHT, WIDTH, 1)
+
+    # Build model
+    classifier = cnn_model_chars.CharacterClassifier(HEIGHT, WIDTH)
+
+    # Fit model
+    classifier.model.fit(
+            train_images,
+            train_labels,
+            batch_size=BATCH_SIZE,
+            epochs=EPOCHS,
+            verbose=1,
+            validation_data=(test_images, test_labels))
+
+    score = classifier.model.evaluate(test_images, test_labels, verbose=0)
+
+    # Save model
+    modelname = 'model-{}char.h5'.format(len(uniq))
+    classifier.model.save(modelname)
