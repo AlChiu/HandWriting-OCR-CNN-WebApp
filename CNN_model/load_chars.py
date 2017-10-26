@@ -37,12 +37,23 @@ class Dataloader:
     Character labels are ord(char) to ensure consistent labeling
     between datasets and easy conversion to one-hot
     """
-    def __init__(self):
-        self.nist_path = dataset_dir + 'nist/'
-        self.chars74k = dataset_dir + 'chars74k/English/'
-        self.chars_fnt_path = self.chars74k + 'Fnt/Img/'
+    def __init__(self, img_height, img_width):
+        self.nist_path = dataset_dir + 'nist/by_class/'
+        self.chars74k = dataset_dir + 'English/'
+        self.chars_fnt_path = self.chars74k + 'Fnt/'
         self.chars_hnd_path = self.chars74k + 'Hnd/Img/'
-        self.chars_img_path = self.chars74k + 'Img/Img/'
+        self.chars_img_path = self.chars74k + 'Img/'
+        self.height = img_height
+        self.width = img_width
+
+    def load_all(self):
+        data = self.load_nist()
+        char74k_data = self.load_char74k()
+
+        for key, value in char74k_data.items():
+            data[key]['points'].extend(value['points'])
+
+        return data
 
     def load_nist(self):
         nist_data = {}
@@ -50,7 +61,7 @@ class Dataloader:
             nist_data = pickle.load(open(nist_fname, 'rb'))
             print('nist loaded from {}'.format(nist_fname))
         except:
-            nist_data = walk_nist()
+            nist_data = self.walk_nist()
             pickle.dump(nist_data, open(nist_fname, 'wb'))
             print('nist saved to ', nist_fname)
         return nist_data
@@ -61,9 +72,16 @@ class Dataloader:
             char74k_data = pickle.load(open(char74k_pname, 'rb'))
             print('char74k loaded from {}'.format(char74k_pname))
         except:
-            char74k_data['fnt'] = walk_char74k('fnt')
-            char74k_data['hnd'] = walk_char74k('hnd')
-            char74k_data['img'] = walk_char74k('img')
+            char74k_data = self.walk_char74k('fnt')
+            hnd = self.walk_char74k('hnd')
+            for key, value in hnd.items():
+                char74k_data[key]['points'].extend(value['points'])
+            img = self.walk_char74k('img')
+            for key, value in img.items():
+                char74k_data[key]['points'].extend(value['points'])
+            if (len(char74k_data['a']['points']) == 0):
+                print('Error: no images loaded')
+                return
             pickle.dump(char74k_data, open(char74k_pname, 'wb'))
             print('char74k saved to ', char74k_pname)
         return char74k_data
@@ -71,22 +89,29 @@ class Dataloader:
     def walk_nist(self):
         data = {}
         for root, dirnames, filenames in os.walk(self.nist_path):
-            foldername = root.split(os.path.sep)[-1]
-            char = chr(int(foldername))
-            data[char] = {}
-            data[char]['id'] = ord(char)
-            data[char]['points'] = []
-            for filename in filenames:
-                if filename.endswith('.png'):
-                    try:
-                        image_path = os.path.join(root, filename)
-                        point = {}
-                        point['filename'] = filename
-                        point['image_path'] = image_path
-                        point['pixel_array'] = convert_to_pixel_array(image_path)
-                        data[char]['points'].append(point)
-                    except:
-                        print('image not valid: {}'.format(filename))
+            sep = os.path.sep
+            root_split = root.replace('\\', sep).replace('/', sep).split(sep) # Fixes inconsistency with path separator in windows
+            if (root_split[-1].startswith('hsf_')):
+                char = chr(int(root_split[-2], 16))
+                if (char not in data):
+                    data[char] = {}
+                    data[char]['id'] = ord(char)
+                    data[char]['points'] = []
+                for filename in filenames:
+                    if filename.endswith('.png'):
+                        try:
+                            image_path = os.path.join(root, filename)
+                            point = {}
+                            point['filename'] = filename
+                            point['image_path'] = image_path
+                            point['pixel_array'] = convert_to_pixel_array(image_path, self.width, self.height)
+                            data[char]['points'].append(point)
+                        except:
+                            print('image not valid: {}'.format(filename))
+                print('Loaded {} images for char {}'.format(len(data[char]['points']), char))
+        if ('a' not in data or len(data['a']['points']) == 0):
+            print('Error: no images loaded')
+            exit()
         return data
 
     def walk_char74k(self, char_type):
@@ -99,30 +124,32 @@ class Dataloader:
             cpath = self.chars_hnd_path
         else:
             cpath = self.chars_img_path
+        print(cpath)
         for root, dirnames, filenames in os.walk(cpath):
-                foldername = root.split(os.path.sep)[-1]
-                chartype_search = re.search(fname_reg, foldername)
-                if (chartype_search and len(chartype_search) == 2):
-                    chartype = int(chartype_search.group(1))
-                    char = char74k_num_to_char(chartype)
+            foldername = root.split(os.path.sep)[-1]
+            chartype_search = re.search(fname_reg, foldername)
+            if (chartype_search and len(chartype_search.groups()) == 1):
+                chartype = int(chartype_search.group(1))
+                char = self.char74k_num_to_char(chartype)
+                if (char not in data):
                     data[char] = {}
                     data[char]['id'] = ord(char)
                     data[char]['points'] = []
-                    for filename in filenames:
-                        if filename.endswith('.png'):
-                            try:
-                                image_path = os.path.join(root, filename)
-                                point = {}
-                                point['filename'] = filename
-                                point['image_path'] = image_path
-                                point['pixel_array'] = convert_to_pixel_array(image_path)
-                                data[char]['points'].append(point)
-                            except:
-                                print('image not valid: {}'.format(filename))
-
+                for filename in filenames:
+                    if filename.endswith('.png'):
+                        try:
+                            image_path = os.path.join(root, filename)
+                            point = {}
+                            point['filename'] = filename
+                            point['image_path'] = image_path
+                            point['pixel_array'] = convert_to_pixel_array(image_path, self.width, self.height)
+                            data[char]['points'].append(point)
+                        except:
+                            print('image not valid: {}'.format(filename))
+                print('Loaded {} images for char {}'.format(len(data[char]['points']), char))
         return data
 
-    def char74k_num_to_char(num):
+    def char74k_num_to_char(self, num):
         mapping = {
                 1: '0',
                 2: '1',

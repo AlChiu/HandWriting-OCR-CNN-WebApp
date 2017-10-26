@@ -40,7 +40,7 @@ def load_data():
 					if(word in words):
 						image_path = os.path.join(root, filename)
 						try:
-							img = convert_to_pixel_array(image_path)
+							img = convert_to_pixel_array(image_path, WIDTH, HEIGHT)
 							if (word not in word_data):
 								word_data[word] = {}
 								word_data[word]['id'] = len(word_data) - 1
@@ -64,17 +64,17 @@ def load_data():
 	NUM_CLASSES = len(word_data)
 	return word_data
 
-def convert_to_pixel_array(image_path):
+def convert_to_pixel_array(image_path, width, height):
 	pixels = []
 
-	im = Image.open(image_path, 'r').resize((WIDTH, HEIGHT), Image.BICUBIC).convert('L')
+	im = Image.open(image_path, 'r').resize((width, height), Image.BICUBIC).convert('L')
 	pixels = list(im.getdata())
 
 	# Normalize and zero center pixel data
 	std_dev = np.std(pixels)
 	img_mean = np.mean(pixels)
 
-	pixels = [(pixels[offset:offset+WIDTH]-img_mean)/std_dev for offset in range(0, WIDTH*HEIGHT, WIDTH)]
+	pixels = [(pixels[offset:offset+width]-img_mean)/std_dev for offset in range(0, width*height, width)]
 	pixels = np.array(pixels).astype(np.float32)
 	
 	return pixels
@@ -91,7 +91,7 @@ class WordClassifier:
 
 	def classify_image(self, image_path):
 		try:
-			image_pixels = convert_to_pixel_array(image_path)
+			image_pixels = convert_to_pixel_array(image_path, WIDTH, HEIGHT)
 			image_pixels = np.array(image_pixels)
 			inp = np.array([image_pixels])
 			inp = inp.reshape(inp.shape[0], 32, 100, 1)

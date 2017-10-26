@@ -1,6 +1,6 @@
 import os
 import time
-import cnn_model_keras
+import cnn_model_words
 import dataload
 import keras
 import random
@@ -50,7 +50,7 @@ if __name__ == '__main__':
 
 	# Build model
 	print('building')
-	model = cnn_model_keras.build_model()
+	model = cnn_model_words.build_model()
 
 	print('fitting')
 	model.fit(
