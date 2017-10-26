@@ -76,9 +76,9 @@ class Dataloader:
             hnd = self.walk_char74k('hnd')
             for key, value in hnd.items():
                 char74k_data[key]['points'].extend(value['points'])
-            img = self.walk_char74k('img')
-            for key, value in img.items():
-                char74k_data[key]['points'].extend(value['points'])
+            #img = self.walk_char74k('img')
+            #for key, value in img.items():
+                #char74k_data[key]['points'].extend(value['points'])
             if (len(char74k_data['a']['points']) == 0):
                 print('Error: no images loaded')
                 return

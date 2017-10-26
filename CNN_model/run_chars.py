@@ -9,12 +9,14 @@ import numpy as np
 if __name__ == '__main__':
     HEIGHT = 32
     WIDTH = 32
-    BATCH_SIZE = 1000
-    EPOCHS = 100
+    BATCH_SIZE = 100
+    EPOCHS = 50
 
     # Load data
     loader = load_chars.Dataloader(HEIGHT, WIDTH)
     char_data = loader.load_all()
+    #char_data = loader.load_char74k()
+    #char_data = loader.load_nist()
 
     # Split into train and test sets
     train_images = []
@@ -22,11 +24,14 @@ if __name__ == '__main__':
     test_images = []
     test_labels = []
 
-    random.seed(100)
     for k, v in char_data.items():
+        random.seed(100)
         # Shuffle data
         pixels = [p['pixel_array'] for p in char_data[k]['points']]
         random.shuffle(pixels)
+
+        # Trim to use only a fraction of the images
+        #pixels = pixels[:int(len(pixels)*0.01)]
 
         split_idx = int(len(pixels)*0.8)
         train_images.extend(pixels[0:split_idx])
@@ -61,7 +66,13 @@ if __name__ == '__main__':
             verbose=1,
             validation_data=(test_images, test_labels))
 
+    score = classifier.model.evaluate(train_images, train_labels, verbose=0)
+    print('Train loss: ', score[0])
+    print('Train accuracy: ', score[1])
+
     score = classifier.model.evaluate(test_images, test_labels, verbose=0)
+    print('Test loss: ', score[0])
+    print('Test accuracy: ', score[1])
 
     # Save model
     modelname = 'model-{}char.h5'.format(len(uniq))
