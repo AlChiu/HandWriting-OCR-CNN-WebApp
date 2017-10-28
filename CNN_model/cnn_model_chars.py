@@ -21,9 +21,10 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 warnings.filterwarnings('ignore')
 
 class CharacterClassifier:
-    def __init__(self, img_height, img_width, modelPath=None):
+    def __init__(self, img_height, img_width, char_ids, modelPath=None):
         self.height = img_height
         self.width = img_width
+        self.char_ids = char_ids
         if (modelPath):
             self.model = keras.models.load_model(modelPath)
         else:
@@ -42,22 +43,29 @@ class CharacterClassifier:
             self.num_labels = 62
             self.model = self.build_model()
 
+    def classify_images(self, image_paths):
+        labels = []
+        for image in image_paths:
+            labels.append(self.classify_image(image))
+
+        return labels
+
     def classify_image(self, image_path):
         try:
             image_pixels = convert_to_pixel_array(image_path, self.width, self.height)
             image_pixels = np.array(image_pixels)
             inp = np.array([image_pixels])
-            inp = inp.reshape(inp.shape[0], 32, 100, 1)
+            inp = inp.reshape(inp.shape[0], 32, 32, 1)
 
             outp = self.model.predict(inp)[0]
             outp = np.array(outp)
 
             top5_idx = outp.argsort()[-5:]
 
-            top5_words = [(k, outp[v['id']]) for k, v in self.word_ids.items() if v['id'] in top5_idx]
-            top5_words = sorted(top5_words, key=lambda x: x[1], reverse=True)
+            top5_chars = [(k, outp[v]) for k, v in self.char_ids.items() if v in top5_idx]
+            top5_chars = sorted(top5_chars, key=lambda x: x[1], reverse=True)
 
-            return top5_words
+            return top5_chars
         except FileNotFoundError:
             print('Image not found at path {}'.format(image_path))
 

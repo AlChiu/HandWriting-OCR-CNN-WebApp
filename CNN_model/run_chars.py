@@ -6,6 +6,7 @@ import keras
 import random
 import numpy as np
 import string
+import pickle
 from sklearn.metrics import confusion_matrix
 
 if __name__ == '__main__':
@@ -13,6 +14,7 @@ if __name__ == '__main__':
     WIDTH = 32
     BATCH_SIZE = 200
     EPOCHS = 100
+    char_ids_fname = 'char_ids.p'
 
     # Load data
     loader = load_chars.Dataloader(HEIGHT, WIDTH)
@@ -25,33 +27,38 @@ if __name__ == '__main__':
     train_labels = []
     test_images = []
     test_labels = []
+    char_ids = {}
 
     for k, v in char_data.items():
-        if k in string.ascii_lowercase:
+        #if k in string.ascii_lowercase: # Loads only lowercase letters
+        if True: # Loads all characters
             random.seed(100)
             # Shuffle data
             pixels = [p['pixel_array'] for p in char_data[k]['points']]
             random.shuffle(pixels)
 
             # Trim to use only a fraction of the images
-            #pixels = pixels[:int(len(pixels)*0.01)]
-            #pixels = pixels[:200]
+            pixels = pixels[:200]
 
             split_idx = int(len(pixels)*0.8)
             train_images.extend(pixels[0:split_idx])
-            train_labels += [char_data[k]['id']] * split_idx
+            train_labels += [v['id']] * split_idx
             test_images.extend(pixels[split_idx:])
-            test_labels += [char_data[k]['id']] * (len(pixels)-split_idx)
+            test_labels += [v['id']] * (len(pixels)-split_idx)
+            char_ids[k] = v['id']
 
     print('{} training images, {} testing images'.format(len(train_images), len(test_images)))
     train_images = np.array(train_images)
-    uniq = list(set(train_labels))
-    # Must convert ordinal id of char to int
-    # TODO: move this conversion to load_chars
-    train_labels = [uniq.index(char) for char in train_labels]
+    uniq = sorted(list(set(train_labels)))
+    # Must convert ordinal id of char to sequential ints starting from 0
+    for k, v in char_ids.items():
+        char_ids[k] = uniq.index(v)
+    pickle.dump(char_ids, open(char_ids_fname, 'wb'))
+    print('char IDs saved to ', char_ids_fname)
+    train_labels = [char_ids[char] for char in train_labels]
     train_labels = keras.utils.to_categorical(train_labels, 62)
     test_images = np.array(test_images)
-    test_labels = [uniq.index(char) for char in test_labels]
+    test_labels = [char_ids[char] for char in test_labels]
     test_labels = keras.utils.to_categorical(test_labels, 62)
 
     # Reshape data to fit image channel
@@ -59,7 +66,7 @@ if __name__ == '__main__':
     test_images = test_images.reshape(test_images.shape[0], HEIGHT, WIDTH, 1)
 
     # Build model
-    classifier = cnn_model_chars.CharacterClassifier(HEIGHT, WIDTH)
+    classifier = cnn_model_chars.CharacterClassifier(HEIGHT, WIDTH, char_ids)
 
     # Fit model
     classifier.model.fit(
