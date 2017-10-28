@@ -64,10 +64,26 @@ def load_data():
 	NUM_CLASSES = len(word_data)
 	return word_data
 
-def convert_to_pixel_array(image_path, width, height):
+def convert_to_pixel_array(image_path, width, height, trim_whitespace=False):
 	pixels = []
 
-	im = Image.open(image_path, 'r').resize((width, height), Image.BICUBIC).convert('L')
+	im = Image.open(image_path, 'r').convert('L')
+	if (trim_whitespace):
+            im_width, im_height = im.size
+            pixels = list(im.getdata())
+            pixels = [pixels[offset:offset+im_width] for offset in range(0, im_width*im_height, im_width)]
+            top = find_topmost_nonwhite_pixel(pixels, im_height, im_width)
+            left = find_leftmost_nonwhite_pixel(pixels, im_height, im_width)
+            bottom = find_bottommost_nonwhite_pixel(pixels, im_height, im_width)
+            right = find_rightmost_nonwhite_pixel(pixels, im_height, im_width)
+            trim = min([top,left,im_height-bottom,im_width-right])
+            top = trim
+            left = trim
+            bottom = im_height - trim
+            right = im_width - trim
+            im = im.crop((top,left,bottom,right))
+            
+	im = im.resize((width, height), Image.BICUBIC)
 	pixels = list(im.getdata())
 
 	# Normalize and zero center pixel data
@@ -78,6 +94,27 @@ def convert_to_pixel_array(image_path, width, height):
 	pixels = np.array(pixels).astype(np.float32)
 	
 	return pixels
+
+def find_topmost_nonwhite_pixel(pixels, height, width):
+    for i in range(height):
+        for j in range(width):
+            if (pixels[i][j] != 0):
+                return i
+def find_leftmost_nonwhite_pixel(pixels, height, width):
+    for j in range(width):
+        for i in range(height):
+            if (pixels[i][j] != 0):
+                return j
+def find_bottommost_nonwhite_pixel(pixels, height, width):
+    for i in range(height-1,-1,-1):
+        for j in range(width):
+            if (pixels[i][j] != 0):
+                return i
+def find_rightmost_nonwhite_pixel(pixels, height, width):
+    for j in range(width-1,-1,-1):
+        for i in range(height):
+            if (pixels[i][j] != 0):
+                return j
 
 class WordClassifier:
 	def __init__(self, modelPath=None, model=None):

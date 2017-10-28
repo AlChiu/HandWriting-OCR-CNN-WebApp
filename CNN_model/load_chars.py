@@ -102,9 +102,8 @@ class Dataloader:
                         try:
                             image_path = os.path.join(root, filename)
                             point = {}
-                            point['filename'] = filename
                             point['image_path'] = image_path
-                            point['pixel_array'] = convert_to_pixel_array(image_path, self.width, self.height)
+                            point['pixel_array'] = convert_to_pixel_array(image_path, self.width, self.height, trim_whitespace=True)
                             data[char]['points'].append(point)
                         except:
                             print('image not valid: {}'.format(filename))
@@ -140,7 +139,6 @@ class Dataloader:
                         try:
                             image_path = os.path.join(root, filename)
                             point = {}
-                            point['filename'] = filename
                             point['image_path'] = image_path
                             point['pixel_array'] = convert_to_pixel_array(image_path, self.width, self.height)
                             data[char]['points'].append(point)
