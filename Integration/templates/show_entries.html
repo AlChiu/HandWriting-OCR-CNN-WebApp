@@ -1,3 +1,7 @@
+<p>
 {% for item in data %}
-  <p>{{ item }}</p>
+	{% for k,v in item%}
+  		{{ k }}
+	{% endfor %}
 {% endfor %}
+</p>
