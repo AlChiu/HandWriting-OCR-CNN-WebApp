@@ -30,6 +30,7 @@ CONV3_FILTERS = 256
 CONV4_FILTERS = 512
 CONV5_FILTERS = 512
 num_units = 100
+num_words = 5000
 
 def build_model():
 	model = Sequential()
@@ -115,7 +116,7 @@ def build_model():
 
 	# CLASSIFICATION LAYER
 	model.add(Dense(
-		units=1000,
+		units=num_words,
 		activation='softmax'))
 
 	start = time.time()

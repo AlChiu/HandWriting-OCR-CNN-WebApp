@@ -10,7 +10,7 @@ from keras import backend as K
 if __name__ == '__main__':
 	BATCH_SIZE = 100
 	EPOCHS = 300
-	NUM_WORDS = 1000
+	NUM_WORDS = 5000
 	HEIGHT = 32
 	WIDTH = 100
 

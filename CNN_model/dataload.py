@@ -16,13 +16,16 @@ config.read('settings.ini')
 image_directory = config['paths']['IMAGE_DIRECTORY']
 
 # Name of converted dataset file
-datafile = 'dataset.p'
 word_id_file = 'word_ids.p'
 
-# Path to text file containing 1000 words to learn, one word per line
-words = set(open('1-1000.txt').read().split())
 
-def load_data():
+def load_data(num_words=10000):
+        # Path to text file containing words to learn, one word per line
+        # Should be sorted in descending order of word priority
+        words = set(open('google-10000-english-usa.txt').read().split()[:num_words])
+
+        datafile = 'dataset-{}-words.p'.format(num_words)
+
 	regexp = '[a-zA-Z]+'
 	word_data = {}
 
