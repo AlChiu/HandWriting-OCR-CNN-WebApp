@@ -8,6 +8,17 @@ from PIL import Image
 from tesserocr import PyTessBaseAPI, RIL
 # from matplotlib import pyplot as plt
 
+# LEFT-TO-RIGHT Sort
+def sort_contours(cnts):
+    reverse = False
+    i = 0
+    boundingBoxes = [cv2.boundingRect(c) for c in cnts]
+    (cnts, boundingBoxes) = zip(*sorted(zip(cnts, boundingBoxes),
+        key = lambda b: b[1][i], reverse = reverse))
+    return (cnts, boundingBoxes)
+
+
+
 # Construct the image argument parser for testing purposes
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--image", required=True, help="path to imput image to be processed")
@@ -70,23 +81,59 @@ for j, val in enumerate(WORD_BOXES):
     # dilate = cv2.dilate(wordGrayBlur, kernel1, iterations=2)
     # erode = cv2.erode(dilate, kernel3, iterations=1)
     im2, contours, hierarchy = cv2.findContours(wordGray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
     centers = []
+    new_box = []
+
+    # NEED TO SORT CONTOURS LEFT TO RIGHT
+
     for k, cnt in enumerate(contours):
         x, y, w, h = cv2.boundingRect(cnt)
-        # center_coord = (x+w/2, y+h/2)
-        # centers.append(center_coord)
-        # for l, (x, y) in enumerate(centers):
-        #     if abs(centers[l].x - centers[l+1].x) < 10:
-        #         if abs(centers[l].y - centers[l+1].y) < 30:
-                    # COMBINE THE TWO BOUNDING BOXES
-            # print(l, x, y)
-        if h < 5 and w < 5:
-            continue
+        CENTER_X = x + w / 2
+        CENTER_Y = y + h / 2
+        center_coord = (CENTER_X, CENTER_Y, x, y, w, h)
+        centers.append(center_coord)
 
-        cv2.rectangle(word, (x, y), (x+w, y+h), (0, 255, 0), 2)
+    cent = np.asarray(centers)
+    # print(cent)
+
+    for i in range(len(cent) - 1):
+        # print(cent[0, 0])
+        diff = abs(cent[i,2] - cent[i+1, 2])
+        if diff < 20:
+            print("Merge")
+        else:
+            print(diff)
+
+    #os.remove(word_file2)
+        #     if abs(cent[l, 1] - cent[m, 1]) < 30:
+        #         # FIND THE BOTTOM LEFT CORNER OF LOWEST BOUNDING BOX
+        #         # MINIMUM OF THE TWO X's and MINIMUM OF THE TWO Y's
+        #         MIN_X = min(cent[l, 2], cent[m, 2])
+        #         MIN_Y = min(cent[l, 3], cent[m, 3])
+        #         # FIND THE LARGEST HEIGHT AND WIDTH OF NEW BOX
+        #         MAX_HEIGHT = max(cent[l, 5], cent[m, 5])
+        #         MAX_WIDTH = max(cent[l, 4], cent[m, 4])
+        #         # CREATE NEW BOUNDING RECTANGLE BASED ON THESE NUMBERS
+        #         # cv2.rectangle(word, (MIN_X, MIN_Y), (MIN_X+LARGEST_WIDTH, MIN_Y+LARGEST_HEIGHT), (0, 255, 0), 2)
+        #         new_rect = (MIN_X, MIN_Y, MAX_WIDTH, MAX_HEIGHT)
+        #         new_box.append(new_rect)
+        #     else:
+        #         continue
+        # else:
+        #     new_rect = (cent[l, 2], cent[l, 3], cent[l, 4], cent[l, 5])
+        #     new_box.append(new_rect)
+    # print(new_rect)
+
+
+
+        # if h < 5 and w < 5:
+        #    continue
+
+        # cv2.rectangle(word, (x, y), (x+w, y+h), (0, 255, 0), 2)
         # cv2.drawContours(word, contours, -1, (0,255,0), 3)
-        cv2.imshow("contours", word)
-        cv2.waitKey(0)
+        # cv2.imshow("contours", word)
+        # cv2.waitKey(0)
 
     # SIMPLE BLOB DETECTION CODE
     # detector = cv2.SimpleBlobDetector_create(params)
