@@ -10,11 +10,10 @@ import classifier
 
 def detector(image):
 # construct the argument parse and parse the arguments
-#ap = argparse.ArgumentParser()
-#ap.add_argument("-i", "--image", required=True,
-#  help="path to input image to be OCR'd")
-#ap.add_argument("-p", "--preprocess", type=str, default="thresh", help="type of preprocessing to be done")
-#args = vars(ap.parse_args())
+  #ap = argparse.ArgumentParser()
+  #ap.add_argument("-i", "--image", required=True, help="path to input image to be OCR'd")
+  #ap.add_argument("-p", "--preprocess", type=str, default="thresh", help="type of preprocessing to be done")
+  #args = vars(ap.parse_args())
 
   # load the example image and convert it to grayscale
   inputImage = cv2.imread(image)
@@ -69,7 +68,11 @@ def detector(image):
       word_file = "word_" + str(i) + ".png"
 
       # Have OpenCV save the cropped image into the new file
-      cv2.imwrite(word_file, cropped) 
+      cv2.imwrite(word_file, cropped)
+
+      # Create the directory to hold the word image
+      # path = "word_" + str(i) + "_directory"
+      # os.mkdir(path) 
 
   # Remove the grayscale image
   os.remove(filename)
