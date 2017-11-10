@@ -8,17 +8,6 @@ from PIL import Image
 from tesserocr import PyTessBaseAPI, RIL
 # from matplotlib import pyplot as plt
 
-# LEFT-TO-RIGHT Sort
-def sort_contours(cnts):
-    reverse = False
-    i = 0
-    boundingBoxes = [cv2.boundingRect(c) for c in cnts]
-    (cnts, boundingBoxes) = zip(*sorted(zip(cnts, boundingBoxes),
-        key = lambda b: b[1][i], reverse = reverse))
-    return (cnts, boundingBoxes)
-
-
-
 # Construct the image argument parser for testing purposes
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--image", required=True, help="path to imput image to be processed")
@@ -85,8 +74,6 @@ for j, val in enumerate(WORD_BOXES):
     centers = []
     new_box = []
 
-    # NEED TO SORT CONTOURS LEFT TO RIGHT
-
     for k, cnt in enumerate(contours):
         x, y, w, h = cv2.boundingRect(cnt)
         CENTER_X = x + w / 2
@@ -95,15 +82,21 @@ for j, val in enumerate(WORD_BOXES):
         centers.append(center_coord)
 
     cent = np.asarray(centers)
-    # print(cent)
+    # NEED TO SORT CONTOURS LEFT TO RIGHT
+    sorted_cent = cent[cent[:, 2].argsort()]
+    print(sorted_cent)
 
-    for i in range(len(cent) - 1):
+    for i in range(len(sorted_cent) - 1):
         # print(cent[0, 0])
-        diff = abs(cent[i,2] - cent[i+1, 2])
-        if diff < 20:
-            print("Merge")
+        diff_X = abs(sorted_cent[i, 0] - sorted_cent[i+1, 0])
+        diff_Y = abs(sorted_cent[i, 1] - sorted_cent[i+1, 1])
+        if diff_X < 10:
+            if diff_Y < 50:
+                print("Merge")
+            else:
+                print("diff_Y= ", diff_Y)
         else:
-            print(diff)
+            print("diff_X= ", diff_X)
 
     #os.remove(word_file2)
         #     if abs(cent[l, 1] - cent[m, 1]) < 30:
