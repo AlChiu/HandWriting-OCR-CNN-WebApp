@@ -29,7 +29,7 @@ CONV2_FILTERS = 128
 CONV3_FILTERS = 256
 CONV4_FILTERS = 512
 CONV5_FILTERS = 512
-num_units = 100
+num_units = 400
 num_words = 5000
 
 def build_model():
