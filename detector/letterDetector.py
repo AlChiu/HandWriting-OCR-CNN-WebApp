@@ -84,21 +84,43 @@ for j, val in enumerate(WORD_BOXES):
     cent = np.asarray(centers)
     # NEED TO SORT CONTOURS LEFT TO RIGHT
     sorted_cent = cent[cent[:, 2].argsort()]
-    print(sorted_cent)
+    # print(sorted_cent)
 
     for i in range(len(sorted_cent) - 1):
         # print(cent[0, 0])
         diff_X = abs(sorted_cent[i, 0] - sorted_cent[i+1, 0])
         diff_Y = abs(sorted_cent[i, 1] - sorted_cent[i+1, 1])
         if diff_X < 10:
-            if diff_Y < 50:
-                print("Merge")
+            if diff_Y < 60:
+                MIN_X = min(sorted_cent[i, 2], sorted_cent[i+1, 2])
+                MIN_Y = min(sorted_cent[i, 3], sorted_cent[i+1, 3])
+                MAX_Y = max(sorted_cent[i, 3], sorted_cent[i+1, 3])
+                MAX_WIDTH = max(sorted_cent[i, 4], sorted_cent[i+1, 4])
+                MIN_HEIGHT = min(sorted_cent[i, 5], sorted_cent[i+1, 5])
+                MAX_HEIGHT = max(sorted_cent[i, 5], sorted_cent[i+1, 5])
+                NEW_HEIGHT = MIN_HEIGHT + MAX_HEIGHT + (MAX_Y - MAX_HEIGHT)
+                box = (MIN_X, MIN_Y, MAX_WIDTH, NEW_HEIGHT)
+                new_box.append(box)
+                #print(box)
             else:
-                print("diff_Y= ", diff_Y)
+                x = sorted_cent[i, 2]
+                y = sorted_cent[i, 3]
+                w = sorted_cent[i, 4]
+                h = sorted_cent[i, 5]
+                box = (x, y, w, h)
+                new_box.append(box)
+                #print("diff_Y= ", diff_Y)
         else:
-            print("diff_X= ", diff_X)
+            x = sorted_cent[i, 2]
+            y = sorted_cent[i, 3]
+            w = sorted_cent[i, 4]
+            h = sorted_cent[i, 5]
+            box = (x, y, w, h)
+            new_box.append(box)
+            #print("diff_X= ", diff_X)
 
-    #os.remove(word_file2)
+    print(new_box)
+    os.remove(word_file2)
         #     if abs(cent[l, 1] - cent[m, 1]) < 30:
         #         # FIND THE BOTTOM LEFT CORNER OF LOWEST BOUNDING BOX
         #         # MINIMUM OF THE TWO X's and MINIMUM OF THE TWO Y's
