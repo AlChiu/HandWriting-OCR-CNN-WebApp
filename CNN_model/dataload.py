@@ -15,16 +15,13 @@ config.read('settings.ini')
 # Path to image dataset
 image_directory = config['paths']['IMAGE_DIRECTORY']
 
-# Name of converted dataset file
-word_id_file = 'word_ids.p'
-
-
 def load_data(num_words=10000):
     # Path to text file containing words to learn, one word per line
     # Should be sorted in descending order of word priority
     words = set(open('google-10000-english-usa.txt').read().split()[:num_words])
 
     datafile = 'dataset-{}-words.p'.format(num_words)
+    word_id_file = 'ids-{}-words.p'.format(num_words)
 
     regexp = '[a-zA-Z]+'
     word_data = {}
@@ -58,10 +55,10 @@ def load_data(num_words=10000):
         # Pickle data so this process doesn't need to be repeated
         pickle.dump(word_data, open(datafile, "wb"))
         print('data saved to {}'.format(datafile))
-        word_ids = word_data.copy()
-        for word, data in words_ids:
-            data.pop('points')
-        pickle.dump(word_ids, open(word_id_file, 'wb'))
+    word_ids = word_data.copy()
+    for word, data in word_ids.items():
+        data.pop('points')
+    pickle.dump(word_ids, open(word_id_file, 'wb'))
 
     global NUM_CLASSES
     NUM_CLASSES = len(word_data)
