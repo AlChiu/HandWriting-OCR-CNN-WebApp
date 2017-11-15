@@ -55,9 +55,10 @@ def load_data(num_words=10000):
         # Pickle data so this process doesn't need to be repeated
         pickle.dump(word_data, open(datafile, "wb"))
         print('data saved to {}'.format(datafile))
-    word_ids = word_data.copy()
-    for word, data in word_ids.items():
-        data.pop('points')
+    word_ids = {}
+    for word, data in word_data.items():
+        word_ids[word] = {}
+        word_ids[word]['id'] = data['id']
     pickle.dump(word_ids, open(word_id_file, 'wb'))
 
     global NUM_CLASSES

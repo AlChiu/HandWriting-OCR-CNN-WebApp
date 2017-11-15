@@ -17,10 +17,6 @@ if __name__ == '__main__':
     # Load data
     word_data = dataload.load_data(NUM_WORDS)
     print('Loaded data')
-    exit()
-
-    # Limit number of words to look at
-    word_data = { word: data for word, data in word_data.items() if data['id'] < NUM_WORDS}
 
     # Split into train and test sets
     train_images = []
@@ -31,20 +27,20 @@ if __name__ == '__main__':
     random.seed(100)
     for k, v in word_data.items():
         # Shuffle data
-        pixels = [p['pixel_array'] for p in word_data[k]['points']]
+        pixels = [p['pixel_array'] for p in v['points']]
         random.shuffle(pixels)
 
         split_idx = int(len(pixels)*0.8)
         train_images.extend(pixels[0:split_idx])
-        train_labels += [word_data[k]['id']] * split_idx
+        train_labels += [v['id']] * split_idx
         test_images.extend(pixels[split_idx:])
-        test_labels += [word_data[k]['id']] * (len(pixels)-split_idx)
+        test_labels += [v['id']] * (len(pixels)-split_idx)
 
     print('{} training images, {} testing images'.format(len(train_images), len(test_images)))
     train_images = np.array(train_images)
-    train_labels = keras.utils.to_categorical(train_labels, 1000)
+    train_labels = keras.utils.to_categorical(train_labels, NUM_WORDS)
     test_images = np.array(test_images)
-    test_labels = keras.utils.to_categorical(test_labels, 1000)
+    test_labels = keras.utils.to_categorical(test_labels, NUM_WORDS)
 
     # Reshape data to fit image channel
     train_images = train_images.reshape(train_images.shape[0], HEIGHT, WIDTH, 1)
