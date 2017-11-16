@@ -119,6 +119,7 @@ def find_rightmost_nonwhite_pixel(pixels, height, width):
 
 class WordClassifier:
     def __init__(self, modelPath=None, model=None):
+        word_id_file='ids-5000-words.p' # Hardcoded to 5000 word file, change to use different model
         if (model is not None):
             self.model = model
         elif (modelPath is not None):
@@ -127,21 +128,21 @@ class WordClassifier:
             raise ValueError('either model or modelPath must be given')
         self.word_ids = pickle.load(open(word_id_file, 'rb'), encoding='latin1')
 
-        def classify_image(self, image_path):
-            try:
-                image_pixels = convert_to_pixel_array(image_path, WIDTH, HEIGHT)
-                image_pixels = np.array(image_pixels)
-                inp = np.array([image_pixels])
-                inp = inp.reshape(inp.shape[0], 32, 100, 1)
+    def classify_image(self, image_path):
+        try:
+            image_pixels = convert_to_pixel_array(image_path, WIDTH, HEIGHT)
+            image_pixels = np.array(image_pixels)
+            inp = np.array([image_pixels])
+            inp = inp.reshape(inp.shape[0], 32, 100, 1)
 
-                outp = self.model.predict(inp)[0]
-                outp = np.array(outp)
+            outp = self.model.predict(inp)[0]
+            outp = np.array(outp)
 
-                top5_idx = outp.argsort()[-5:]
+            top5_idx = outp.argsort()[-5:]
 
-                top5_words = [(k, outp[v['id']]) for k, v in self.word_ids.items() if v['id'] in top5_idx]
-                top5_words = sorted(top5_words, key=lambda x: x[1], reverse=True)
+            top5_words = [(k, outp[v['id']]) for k, v in self.word_ids.items() if v['id'] in top5_idx]
+            top5_words = sorted(top5_words, key=lambda x: x[1], reverse=True)
 
-                return top5_words
-            except FileNotFoundError:
-                print('Image not found at path {}'.format(image_path))
+            return top5_words
+        except FileNotFoundError:
+            print('Image not found at path {}'.format(image_path))
