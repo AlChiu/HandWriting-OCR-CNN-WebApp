@@ -119,7 +119,19 @@ for j, val in enumerate(WORD_BOXES):
             new_box.append(box)
             #print("diff_X= ", diff_X)
 
-    print(new_box)
+    new_box = np.asarray(new_box)
+    # Draw the new boxes on the word images
+    for i in range(len(new_box)):
+        x = new_box[i, 0].astype(np.int)
+        y = new_box[i, 1].astype(np.int)
+        w = new_box[i, 2].astype(np.int)
+        h = new_box[i, 3].astype(np.int)
+        cv2.rectangle(word, (x, y), (x+w, y+h), (0, 255, 0), 2)
+        # cv2.drawContours(word, contours, -1, (0,255,0), 3)
+        cv2.imshow("contours", word)
+        cv2.waitKey(0)
+
+    # print(new_box)
     os.remove(word_file2)
         #     if abs(cent[l, 1] - cent[m, 1]) < 30:
         #         # FIND THE BOTTOM LEFT CORNER OF LOWEST BOUNDING BOX
@@ -144,11 +156,6 @@ for j, val in enumerate(WORD_BOXES):
 
         # if h < 5 and w < 5:
         #    continue
-
-        # cv2.rectangle(word, (x, y), (x+w, y+h), (0, 255, 0), 2)
-        # cv2.drawContours(word, contours, -1, (0,255,0), 3)
-        # cv2.imshow("contours", word)
-        # cv2.waitKey(0)
 
     # SIMPLE BLOB DETECTION CODE
     # detector = cv2.SimpleBlobDetector_create(params)
