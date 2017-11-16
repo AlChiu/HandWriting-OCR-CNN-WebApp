@@ -9,7 +9,7 @@ from keras import backend as K
 
 if __name__ == '__main__':
     BATCH_SIZE = 100
-    EPOCHS = 300
+    EPOCHS = 100
     NUM_WORDS = 5000
     HEIGHT = 32
     WIDTH = 100
@@ -29,12 +29,17 @@ if __name__ == '__main__':
         # Shuffle data
         pixels = [p['pixel_array'] for p in v['points']]
         random.shuffle(pixels)
+        del pixels[int(len(pixels)*0.5):] # Trims list to save memory
 
         split_idx = int(len(pixels)*0.8)
         train_images.extend(pixels[0:split_idx])
         train_labels += [v['id']] * split_idx
         test_images.extend(pixels[split_idx:])
         test_labels += [v['id']] * (len(pixels)-split_idx)
+
+        # Save memory by deleting unused lists
+        del v['points'][:]
+        del pixels
 
     print('{} training images, {} testing images'.format(len(train_images), len(test_images)))
     train_images = np.array(train_images)
