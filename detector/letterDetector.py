@@ -9,25 +9,26 @@ from tesserocr import PyTessBaseAPI, RIL
 # from matplotlib import pyplot as plt
 
 # Construct the image argument parser for testing purposes
-ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--image", required=True, help="path to imput image to be processed")
-args = vars(ap.parse_args())
+AP = argparse.ArgumentParser()
+AP.add_argument("-i", "--image", required=True, help="path to input image")
+ARGS = vars(AP.parse_args())
 
 # load the example image and convert it to grascale
-inputImage = cv2.imread(args["image"])
-inputResize = cv2.resize(inputImage, None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC)
-inputImageBlur = cv2.bilateralFilter(inputResize, 13, 75, 75)
-grayInputImage = cv2.cvtColor(inputImageBlur, cv2.COLOR_BGR2GRAY)
+INPUT_IMAGE = cv2.imread(ARGS["image"])
+GRAY_IMAGE = cv2.cvtColor(INPUT_IMAGE, cv2.COLOR_BGR2GRAY)
+RESIZED_IMAGE = cv2.resize(GRAY_IMAGE, None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC)
+BLUR_IMAGE = cv2.bilateralFilter(RESIZED_IMAGE, 13, 55, 55)
+
 
 # apply thresholds to the image
-ret, otsu = cv2.threshold(grayInputImage, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+ret, OTSU = cv2.threshold(BLUR_IMAGE, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 # thresheld_adaptive_mean = cv2.adaptiveThreshold(grayInputImage, 255,
 #  cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 7, 2)
 # thresheld_adaptive_gauss = cv2.adaptiveThreshold(grayInputImage, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 7, 2)
 
 # write thresheld image to a new, temporary file
-filename = "{}.png".format(os.getpid())
-cv2.imwrite(filename, otsu)
+TEMP_IMAGE = "{}.png".format(os.getpid())
+cv2.imwrite(TEMP_IMAGE, OTSU)
 
 # display new, temporary file
 # titles = ['Original Image','Otsu', 'Adaptive Mean Thresholding', 'Adaptive Gaussian Thresholding']
@@ -40,7 +41,7 @@ cv2.imwrite(filename, otsu)
 
 # perform OCR and word detection using Tesseract engine
 with PyTessBaseAPI() as api:
-    api.SetImageFile(filename)
+    api.SetImageFile(TEMP_IMAGE)
     WORD_BOXES = api.GetComponentImages(RIL.WORD, True)
     print('Found {} word images'.format(len(WORD_BOXES)))
     for i, (im, box, _, _) in enumerate(WORD_BOXES):
@@ -49,7 +50,7 @@ with PyTessBaseAPI() as api:
         # conf = api.MeanTextConf()
         # print("Box[{0}]: x={x}, y={y}, w={w}, h={h}, confidence: {1}, text:{2}".format(i, conf, ocrResult, **box))
         coord = list(box.values())
-        cropper = Image.open(filename)
+        cropper = Image.open(TEMP_IMAGE)
         crop_image = cropper.crop((coord[0], coord[1], coord[0]+coord[2], coord[1]+coord[3]))
         cropped = np.array(crop_image)
         constant = cv2.copyMakeBorder(cropped, 5, 5, 5, 5, cv2.BORDER_CONSTANT, value=0)
@@ -97,6 +98,7 @@ for j, val in enumerate(WORD_BOXES):
         else:
             diff_X = abs(sorted_cent[i, 0] - sorted_cent[i+1, 0])
             diff_Y = abs(sorted_cent[i, 1] - sorted_cent[i+1, 1])
+            # NEED TO DESIGN IT SO THAT IT IS RELATIVE TO IMAGE DIMENSIONS
             if diff_X < 10:
                 if diff_Y < 60:
                     MIN_X = min(sorted_cent[i, 2], sorted_cent[i+1, 2])
@@ -108,7 +110,6 @@ for j, val in enumerate(WORD_BOXES):
                     NEW_H = MIN_H + MAX_H + (MAX_Y - (MIN_Y + MIN_H))
                     box = (MIN_X, MIN_Y, MAX_W, NEW_H)
                     new_box.append(box)
-                    #print(box)
                 else:
                     x = sorted_cent[i, 2]
                     y = sorted_cent[i, 3]
@@ -116,7 +117,6 @@ for j, val in enumerate(WORD_BOXES):
                     h = sorted_cent[i, 5]
                     box = (x, y, w, h)
                     new_box.append(box)
-                    #print("diff_Y= ", diff_Y)
             else:
                 x = sorted_cent[i, 2]
                 y = sorted_cent[i, 3]
@@ -124,7 +124,6 @@ for j, val in enumerate(WORD_BOXES):
                 h = sorted_cent[i, 5]
                 box = (x, y, w, h)
                 new_box.append(box)
-                #print("diff_X= ", diff_X)
 
     new_box = np.asarray(new_box)
     # Draw the new boxes on the word images
@@ -133,10 +132,15 @@ for j, val in enumerate(WORD_BOXES):
         y = new_box[i, 1].astype(np.int)
         w = new_box[i, 2].astype(np.int)
         h = new_box[i, 3].astype(np.int)
-        cv2.rectangle(word, (x, y), (x+w, y+h), (0, 255, 0), 2)
-        # cv2.drawContours(word, contours, -1, (0,255,0), 3)
-        cv2.imshow("contours", word)
-        cv2.waitKey(0)
+        area = w * h
+        print(x, y, w, h, area)
+        # NEED TO DESIGN IT SO THAT IT IS RELATIVE TO THE IMAGE DIMENSIONS
+        if area < 500:
+            continue
+        else:
+            cv2.rectangle(word, (x, y), (x+w, y+h), (0, 255, 0), 2)
+            cv2.imshow("contours", word)
+            cv2.waitKey(0)
 
     # print(new_box)
     os.remove(word_file2)
@@ -206,4 +210,4 @@ for j, val in enumerate(WORD_BOXES):
     # os.rename(word_file, word_path)
 
 # delete the new, temporary file
-os.remove(filename)
+os.remove(TEMP_IMAGE)
