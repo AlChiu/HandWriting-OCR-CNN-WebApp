@@ -13,9 +13,13 @@ def classify():
   classifier = WordClassifier(modelPath='model-1000word.h5')
 
   words = []
+  string = []
 
   for image in sorted(glob.iglob('word_*.png'), key=numericalSort):
     words.append(classifier.classify_image(image))
     os.remove(image)
+
+  #for i, (word, conf) in words:
+   # string.append(word)
 
   return words

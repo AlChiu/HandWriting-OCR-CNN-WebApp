@@ -104,6 +104,13 @@ class WordClassifier:
 			top1_words = [(k, outp[v['id']]) for k, v in self.word_ids.items() if v['id'] in top_idx]
 			top1_words = sorted(top1_words, key=lambda x: x[1], reverse=True)
 
-			return top1_words
+			top1 = np.asarray(top1_words)
+
+			#print(top1[0,1], type(top1[0,0]), type(top1[0,1]))
+			if top1[0, 1].astype(np.float) < 0.5:
+				top1[0, 0] = "(N/A)"
+
+			print(top1)
+			return top1
 		except FileNotFoundError:
 			print('Image not found at path {}'.format(image_path))
