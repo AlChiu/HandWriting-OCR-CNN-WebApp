@@ -42,10 +42,10 @@ def detector(image):
       api.SetRectangle(box['x'], box['y'], box['w'], box['h'])
 
       # What is the word in the bounding box
-      ocrResult = api.GetUTF8Text()
+      #ocrResult = api.GetUTF8Text()
 
       # Get the confidence of its translation
-      conf = api.MeanTextConf()
+     # conf = api.MeanTextConf()
 
       # Turn the returned bounding box coordinates into an array of coordinates
       coord = list(box.values())
