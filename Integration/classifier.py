@@ -19,7 +19,4 @@ def classify():
     words.append(classifier.classify_image(image))
     os.remove(image)
 
-  #for i, (word, conf) in words:
-   # string.append(word)
-
   return words

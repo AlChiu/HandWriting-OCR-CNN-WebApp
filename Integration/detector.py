@@ -31,7 +31,7 @@ def detector(image):
     api.SetImageFile(filename)
 
     # OCR the grayscale image for comparison
-    translation = api.GetUTF8Text()
+    #translation = api.GetUTF8Text()
 
     # We will segment the grayscale by words
     boxes = api.GetComponentImages(RIL.WORD, True)
@@ -78,4 +78,4 @@ def detector(image):
   os.remove(filename)
 
   # Print out Tessearct's translation for comparison
-  print(translation)
+  #print(translation)

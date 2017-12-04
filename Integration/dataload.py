@@ -106,11 +106,9 @@ class WordClassifier:
 
 			top1 = np.asarray(top1_words)
 
-			#print(top1[0,1], type(top1[0,0]), type(top1[0,1]))
 			if top1[0, 1].astype(np.float) < 0.5:
 				top1[0, 0] = "(N/A)"
 
-			print(top1)
 			return top1
 		except FileNotFoundError:
 			print('Image not found at path {}'.format(image_path))
