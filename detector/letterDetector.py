@@ -17,6 +17,7 @@ ARGS = vars(AP.parse_args())
 INPUT_IMAGE = cv2.imread(ARGS["image"])
 GRAY_IMAGE = cv2.cvtColor(INPUT_IMAGE, cv2.COLOR_BGR2GRAY)
 RESIZED_IMAGE = cv2.resize(GRAY_IMAGE, None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC)
+IMAGE_HEIGHT, IMAGE_WIDTH = RESIZED_IMAGE.shape
 BLUR_IMAGE = cv2.bilateralFilter(RESIZED_IMAGE, 13, 55, 55)
 
 
