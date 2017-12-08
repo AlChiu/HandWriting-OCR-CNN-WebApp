@@ -4,3 +4,5 @@
 *.box
 *.hocr
 __pycache__/
+CNN_model/
+detector/
