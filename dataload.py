@@ -17,10 +17,10 @@ image_directory = config['paths']['IMAGE_DIRECTORY']
 
 # Name of converted dataset file
 datafile = 'dataset.p'
-word_id_file = 'CNN/word_ids.p'
+word_id_file = 'NeuralNet/word_ids.p'
 
 # Path to text file containing 1000 words to learn, one word per line
-words = set(open('CNN/1-1000.txt').read().split())
+words = set(open('NeuralNet/1-1000.txt').read().split())
 
 def load_data():
 	regexp = '[a-zA-Z]+'

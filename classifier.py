@@ -10,7 +10,7 @@ def numericalSort(value):
     return parts
 
 def classify():
-  classifier = WordClassifier(modelPath='CNN/model-1000word.h5')
+  classifier = WordClassifier(modelPath='NeuralNet/model-1000word.h5')
 
   words = []
   string = []
