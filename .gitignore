@@ -1,0 +1,9 @@
+*.jpg
+*.jpeg
+*.png
+*.box
+*.hocr
+__pycache__/
+TODO.txt
+detector/
+CNN_model/
